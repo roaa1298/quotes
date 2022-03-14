@@ -6,19 +6,31 @@ package quotes;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class App {
+    static ArrayList<QuotesAPI> quoteApiList=new ArrayList<>();
+
     public String getGreeting() {
         return "Hello World!";
     }
 
     public static void main(String[] args) throws IOException {
-//        System.out.println(new App().getGreeting());
+
+        getQuoteLocal();
+        getQuoteAPI();
+//        QuotesAPI quoteObject=new QuotesAPI("Anybody can make history. Only a great man can write it.","Oscar Wilde");
+//        quoteObject.getQuoteAPI();
+
+
+    }
+
+    public static void getQuoteLocal() throws IOException {
+        System.out.println(new App().getGreeting());
         Quotes newQuotes=new Quotes("Marilyn Monroe","I am good, but not an angel. I do sin, but I am not the devil. I am just a small girl in a big world trying to find someone to love.");
         Gson gson=new Gson();
         String qJSON = gson.toJson(newQuotes);
@@ -32,6 +44,33 @@ public class App {
         read.close();
         Quotes quotesObj=quoteList.get(randomIndex);
         System.out.println(quotesObj);
+    }
 
+    public static ArrayList<QuotesAPI> getQuoteAPI() throws IOException {
+        URL quotUrl = new URL("http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en");
+        HttpURLConnection quotHttpURLConnection = (HttpURLConnection) quotUrl.openConnection();
+        quotHttpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0");
+        quotHttpURLConnection.setRequestMethod("GET");
+        InputStreamReader quotInputStreamReader = new InputStreamReader(quotHttpURLConnection.getInputStream());
+        BufferedReader quotBufferedReader = new BufferedReader(quotInputStreamReader);
+        String quotData = quotBufferedReader.readLine();
+        System.out.println("--------------------------------------------------------------------------------------");
+        System.out.println(quotData);
+
+        Gson gson = new Gson();
+        QuotesAPI quoteObj=gson.fromJson(quotData,QuotesAPI.class);
+        quoteApiList.add(quoteObj);
+
+        System.out.println(quoteApiList);
+        System.out.println(quoteApiList.size());
+
+        File quoteFile = new File("./dailyQuote.json");
+        try (FileWriter quoteFileWriter = new FileWriter(quoteFile);
+            BufferedWriter b = new BufferedWriter(quoteFileWriter);
+            PrintWriter p = new PrintWriter(b)) {
+            p.append(gson.toJson(quoteApiList));
+//            gson.toJson(quoteApiList, quoteFileWriter);
+        }
+        return quoteApiList;
     }
 }

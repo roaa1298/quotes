@@ -7,10 +7,9 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,5 +29,8 @@ class AppTest {
         read.close();
         Quotes quotesObj=quoteList.get(randomIndex);
         assertNotNull(quotesObj);
+    }
+    @Test void quoteAPITest() throws IOException {
+        assertNotNull(App.getQuoteAPI());
     }
 }
