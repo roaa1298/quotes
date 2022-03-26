@@ -47,22 +47,27 @@ public class App {
     }
 
     public static ArrayList<QuotesAPI> getQuoteAPI() throws IOException {
+        try {
         URL quotUrl = new URL("http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en");
         HttpURLConnection quotHttpURLConnection = (HttpURLConnection) quotUrl.openConnection();
         quotHttpURLConnection.setRequestProperty("User-Agent", "Mozilla/5.0");
         quotHttpURLConnection.setRequestMethod("GET");
-        InputStreamReader quotInputStreamReader = new InputStreamReader(quotHttpURLConnection.getInputStream());
-        BufferedReader quotBufferedReader = new BufferedReader(quotInputStreamReader);
-        String quotData = quotBufferedReader.readLine();
-        System.out.println("--------------------------------------------------------------------------------------");
-        System.out.println(quotData);
+        int responseCode = quotHttpURLConnection.getResponseCode();
 
-        Gson gson = new Gson();
-        QuotesAPI quoteObj=gson.fromJson(quotData,QuotesAPI.class);
-        quoteApiList.add(quoteObj);
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            InputStreamReader quotInputStreamReader = new InputStreamReader(quotHttpURLConnection.getInputStream());
+            BufferedReader quotBufferedReader = new BufferedReader(quotInputStreamReader);
+            String quotData = quotBufferedReader.readLine();
+            System.out.println("--------------------------------------------------------------------------------------");
+            System.out.println(quotData);
 
-        System.out.println(quoteApiList);
-        System.out.println(quoteApiList.size());
+            Gson gson = new Gson();
+            QuotesAPI quoteObj = gson.fromJson(quotData, QuotesAPI.class);
+            quoteApiList.add(quoteObj);
+
+            System.out.println(quoteApiList);
+            System.out.println(quoteApiList.size());
+
 
         File quoteFile = new File("./dailyQuote.json");
         try (FileWriter quoteFileWriter = new FileWriter(quoteFile);
@@ -71,6 +76,17 @@ public class App {
             p.append(gson.toJson(quoteApiList));
 //            gson.toJson(quoteApiList, quoteFileWriter);
         }
+        }
+        else {
+        System.out.println("Request unable to processed");
+        quotHttpURLConnection.disconnect();
+            getQuoteLocal();
+        }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return quoteApiList;
     }
 }
